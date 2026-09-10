@@ -1,0 +1,157 @@
+{
+  "twitchchat": {
+    "settings": {
+      "name": "Twitch Chat",
+      "header": {
+        "connection": {
+          "name": "Connection"
+        },
+        "account": {
+          "name": "Twitch account"
+        },
+        "display": {
+          "name": "Display"
+        },
+        "advanced": {
+          "name": "Advanced"
+        }
+      },
+      "enabled": {
+        "name": "Enable Twitch Chat"
+      },
+      "channel": {
+        "name": "Channel",
+        "description": "The Twitch channel whose chat is shown. Leave empty to use the Twitch account linked on laby.net."
+      },
+      "autoConnect": {
+        "name": "Connect automatically",
+        "description": "Join the channel as soon as the game starts."
+      },
+      "toggleConnection": {
+        "name": "Connection",
+        "text": "Connect / Disconnect"
+      },
+      "login": {
+        "name": "Log in with Twitch",
+        "description": "Needed to write messages. Reading works without an account.",
+        "text": "Log in"
+      },
+      "logout": {
+        "name": "Log out",
+        "text": "Log out"
+      },
+      "showInChatTab": {
+        "name": "Own chat tab",
+        "description": "Shows the Twitch chat as its own tab in the chat window. Messages you type while that tab is open are sent to Twitch."
+      },
+      "mirrorToMainChat": {
+        "name": "Also show in the main chat",
+        "description": "Copies every Twitch message into the regular chat with a [Twitch] prefix."
+      },
+      "showBadges": {
+        "name": "Badges",
+        "description": "Broadcaster, moderator, VIP and subscriber badges in front of the name."
+      },
+      "showEmotes": {
+        "name": "Twitch emotes"
+      },
+      "thirdPartyEmotes": {
+        "name": "BTTV and FFZ emotes",
+        "description": "Also renders BetterTTV and FrankerFaceZ emotes of the channel."
+      },
+      "showTimestamps": {
+        "name": "Timestamps"
+      },
+      "showEvents": {
+        "name": "Channel events",
+        "description": "Subscriptions, raids, timeouts and other channel notices."
+      },
+      "highlightMentions": {
+        "name": "Highlight mentions",
+        "description": "Highlights messages that mention your Twitch or Minecraft name."
+      },
+      "clientId": {
+        "name": "Twitch client id",
+        "description": "Client id of a public Twitch application. Only needed for logging in."
+      }
+    },
+    "hudWidget": {
+      "twitch_chat": {
+        "name": "Twitch Chat",
+        "description": "Shows the newest Twitch chat messages while you play.",
+        "maxMessages": {
+          "name": "Messages"
+        },
+        "hideAfter": {
+          "name": "Hide after (seconds)",
+          "description": "0 keeps the messages until new ones arrive."
+        },
+        "width": {
+          "name": "Width"
+        }
+      }
+    },
+    "chat": {
+      "tab": "Twitch",
+      "clickToMention": "Click to reply",
+      "openLink": "Open link"
+    },
+    "badges": {
+      "broadcaster": "Broadcaster",
+      "moderator": "Moderator",
+      "vip": "VIP",
+      "subscriber": "Subscriber",
+      "founder": "Founder",
+      "partner": "Verified",
+      "staff": "Twitch Staff",
+      "admin": "Twitch Admin",
+      "global_mod": "Global Moderator",
+      "turbo": "Turbo",
+      "premium": "Prime Gaming",
+      "artist_badge": "Artist",
+      "game_developer": "Game Developer",
+      "bits": "Cheerer",
+      "sub_gifter": "Gifter",
+      "hype_train": "Hype Train Conductor",
+      "ambassador": "Twitch Ambassador",
+      "no_audio": "Watching without audio",
+      "no_video": "Listening only"
+    },
+    "commands": {
+      "help": "/twitch join <channel> | leave | connect | login | logout | status | say <message>  -  /tw <message> writes into the channel"
+    },
+    "messages": {
+      "resolvingChannel": "No channel set, looking up your linked Twitch account...",
+      "noChannel": "No channel configured. Set one in the settings or use /twitch join <channel>.",
+      "connecting": "Connecting to #%s...",
+      "joined": "Joined #%s.",
+      "disconnected": "Disconnected from Twitch.",
+      "connectionLost": "Connection lost, reconnecting... %s",
+      "readOnly": "Read-only mode. Log in via the settings or /twitch login to write messages.",
+      "loginRequired": "You need to log in with Twitch to write messages (/twitch login).",
+      "notConnected": "Not connected to a Twitch channel.",
+      "sendFailed": "The message could not be sent.",
+      "noClientId": "No Twitch client id configured. Enter one in the advanced settings.",
+      "loginPending": "A login is already in progress. Finish it in your browser.",
+      "loginOpen": "Open",
+      "loginCode": "and enter the code",
+      "loginCopy": "Click to copy the code",
+      "loginExpired": "The login code expired. Start the login again.",
+      "loginFailed": "Twitch login failed: %s",
+      "loginSuccess": "Logged in as %s.",
+      "loggedOut": "Logged out of Twitch.",
+      "sessionExpired": "Your Twitch session expired. Please log in again.",
+      "authFailed": "Twitch rejected the login. Please log in again.",
+      "chatCleared": "The chat was cleared by a moderator.",
+      "userBanned": "%s was banned.",
+      "userTimedOut": "%s was timed out for %s seconds.",
+      "status": {
+        "connected": "Connected to #%s.",
+        "connecting": "Connecting to #%s...",
+        "disconnected": "Not connected (channel: %s).",
+        "loggedIn": "Logged in as %s.",
+        "anonymous": "Not logged in, read-only."
+      }
+    }
+  }
+}

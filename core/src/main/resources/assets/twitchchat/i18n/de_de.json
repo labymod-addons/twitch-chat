@@ -1,0 +1,157 @@
+{
+  "twitchchat": {
+    "settings": {
+      "name": "Twitch Chat",
+      "header": {
+        "connection": {
+          "name": "Verbindung"
+        },
+        "account": {
+          "name": "Twitch-Konto"
+        },
+        "display": {
+          "name": "Darstellung"
+        },
+        "advanced": {
+          "name": "Erweitert"
+        }
+      },
+      "enabled": {
+        "name": "Twitch Chat aktivieren"
+      },
+      "channel": {
+        "name": "Kanal",
+        "description": "Der Twitch-Kanal, dessen Chat angezeigt wird. Leer lassen, um das auf laby.net verknuepfte Twitch-Konto zu verwenden."
+      },
+      "autoConnect": {
+        "name": "Automatisch verbinden",
+        "description": "Betritt den Kanal direkt beim Start des Spiels."
+      },
+      "toggleConnection": {
+        "name": "Verbindung",
+        "text": "Verbinden / Trennen"
+      },
+      "login": {
+        "name": "Mit Twitch anmelden",
+        "description": "Noetig, um Nachrichten zu schreiben. Mitlesen geht ohne Konto.",
+        "text": "Anmelden"
+      },
+      "logout": {
+        "name": "Abmelden",
+        "text": "Abmelden"
+      },
+      "showInChatTab": {
+        "name": "Eigener Chat-Tab",
+        "description": "Zeigt den Twitch-Chat als eigenen Tab im Chatfenster. Was du in diesem Tab tippst, geht an Twitch."
+      },
+      "mirrorToMainChat": {
+        "name": "Auch im Hauptchat anzeigen",
+        "description": "Kopiert jede Twitch-Nachricht mit [Twitch]-Prefix in den normalen Chat."
+      },
+      "showBadges": {
+        "name": "Badges",
+        "description": "Streamer-, Moderator-, VIP- und Abonnenten-Badges vor dem Namen."
+      },
+      "showEmotes": {
+        "name": "Twitch-Emotes"
+      },
+      "thirdPartyEmotes": {
+        "name": "BTTV- und FFZ-Emotes",
+        "description": "Zeigt zusaetzlich BetterTTV- und FrankerFaceZ-Emotes des Kanals."
+      },
+      "showTimestamps": {
+        "name": "Uhrzeit anzeigen"
+      },
+      "showEvents": {
+        "name": "Kanal-Ereignisse",
+        "description": "Abos, Raids, Timeouts und andere Hinweise des Kanals."
+      },
+      "highlightMentions": {
+        "name": "Erwaehnungen hervorheben",
+        "description": "Hebt Nachrichten hervor, die deinen Twitch- oder Minecraft-Namen nennen."
+      },
+      "clientId": {
+        "name": "Twitch Client-ID",
+        "description": "Client-ID einer oeffentlichen Twitch-Anwendung. Nur fuer die Anmeldung noetig."
+      }
+    },
+    "hudWidget": {
+      "twitch_chat": {
+        "name": "Twitch Chat",
+        "description": "Zeigt die neuesten Twitch-Nachrichten waehrend du spielst.",
+        "maxMessages": {
+          "name": "Nachrichten"
+        },
+        "hideAfter": {
+          "name": "Ausblenden nach (Sekunden)",
+          "description": "0 behaelt die Nachrichten, bis neue ankommen."
+        },
+        "width": {
+          "name": "Breite"
+        }
+      }
+    },
+    "chat": {
+      "tab": "Twitch",
+      "clickToMention": "Klicken zum Antworten",
+      "openLink": "Link oeffnen"
+    },
+    "badges": {
+      "broadcaster": "Streamer",
+      "moderator": "Moderator",
+      "vip": "VIP",
+      "subscriber": "Abonnent",
+      "founder": "Gruender",
+      "partner": "Verifiziert",
+      "staff": "Twitch-Mitarbeiter",
+      "admin": "Twitch-Admin",
+      "global_mod": "Globaler Moderator",
+      "turbo": "Turbo",
+      "premium": "Prime Gaming",
+      "artist_badge": "Kuenstler",
+      "game_developer": "Spieleentwickler",
+      "bits": "Cheerer",
+      "sub_gifter": "Schenker",
+      "hype_train": "Hype-Train-Schaffner",
+      "ambassador": "Twitch-Botschafter",
+      "no_audio": "Schaut ohne Ton",
+      "no_video": "Hoert nur zu"
+    },
+    "commands": {
+      "help": "/twitch join <Kanal> | leave | connect | login | logout | status | say <Nachricht>  -  /tw <Nachricht> schreibt in den Kanal"
+    },
+    "messages": {
+      "resolvingChannel": "Kein Kanal gesetzt, suche dein verknuepftes Twitch-Konto...",
+      "noChannel": "Kein Kanal eingestellt. Setze einen in den Einstellungen oder mit /twitch join <Kanal>.",
+      "connecting": "Verbinde mit #%s...",
+      "joined": "#%s betreten.",
+      "disconnected": "Verbindung zu Twitch getrennt.",
+      "connectionLost": "Verbindung verloren, verbinde neu... %s",
+      "readOnly": "Nur-Lesen-Modus. Melde dich in den Einstellungen oder mit /twitch login an, um zu schreiben.",
+      "loginRequired": "Zum Schreiben musst du dich mit Twitch anmelden (/twitch login).",
+      "notConnected": "Nicht mit einem Twitch-Kanal verbunden.",
+      "sendFailed": "Die Nachricht konnte nicht gesendet werden.",
+      "noClientId": "Keine Twitch Client-ID hinterlegt. Trage eine in den erweiterten Einstellungen ein.",
+      "loginPending": "Eine Anmeldung laeuft bereits. Schliesse sie im Browser ab.",
+      "loginOpen": "Oeffne",
+      "loginCode": "und gib den Code",
+      "loginCopy": "Klicken, um den Code zu kopieren",
+      "loginExpired": "Der Anmeldecode ist abgelaufen. Starte die Anmeldung erneut.",
+      "loginFailed": "Twitch-Anmeldung fehlgeschlagen: %s",
+      "loginSuccess": "Angemeldet als %s.",
+      "loggedOut": "Von Twitch abgemeldet.",
+      "sessionExpired": "Deine Twitch-Sitzung ist abgelaufen. Bitte melde dich erneut an.",
+      "authFailed": "Twitch hat die Anmeldung abgelehnt. Bitte melde dich erneut an.",
+      "chatCleared": "Der Chat wurde von einem Moderator geleert.",
+      "userBanned": "%s wurde gebannt.",
+      "userTimedOut": "%s wurde fuer %s Sekunden stummgeschaltet.",
+      "status": {
+        "connected": "Verbunden mit #%s.",
+        "connecting": "Verbinde mit #%s...",
+        "disconnected": "Nicht verbunden (Kanal: %s).",
+        "loggedIn": "Angemeldet als %s.",
+        "anonymous": "Nicht angemeldet, nur lesen."
+      }
+    }
+  }
+}
