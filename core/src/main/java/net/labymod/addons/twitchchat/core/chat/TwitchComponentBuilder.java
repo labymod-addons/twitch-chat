@@ -33,7 +33,12 @@ import net.labymod.api.util.I18n;
  */
 public final class TwitchComponentBuilder {
 
-  public static final int ICON_SIZE = 9;
+  /**
+   * Height of inline badges and emotes. A chat line box is 9 units tall but glyphs only fill
+   * the upper 8, so a 9 unit icon touches the lines above and below. 8 keeps the icon inside
+   * the line and aligned with the text.
+   */
+  public static final int ICON_SIZE = 8;
   public static final TextColor PURPLE = TextColor.color(TwitchColors.TWITCH_PURPLE);
   public static final Component PREFIX = Component.text("[", NamedTextColor.DARK_GRAY)
       .append(Component.text("Twitch", PURPLE))
@@ -65,7 +70,9 @@ public final class TwitchComponentBuilder {
     }
 
     switch (message.kind()) {
-      case SYSTEM -> root.append(Component.text(message.text(), NamedTextColor.GRAY));
+      case SYSTEM -> root.append(message.component() != null
+          ? message.component()
+          : Component.text(message.text(), NamedTextColor.GRAY));
       case EVENT -> {
         root.append(Component.text("★ ", PURPLE));
         if (message.eventText() != null && !message.eventText().isEmpty()) {
@@ -139,7 +146,7 @@ public final class TwitchComponentBuilder {
     TextComponent hover = Component.text("@" + message.login(), NamedTextColor.GRAY);
     if (canReply && !message.isSelf()) {
       hover.append(Component.newline())
-          .append(Component.text(I18n.translate("twitchchat.chat.clickToMention"), NamedTextColor.DARK_GRAY));
+          .append(Component.translatable("twitchchat.chat.clickToMention", NamedTextColor.DARK_GRAY));
       name.clickEvent(ClickEvent.suggestCommand("/tw @" + message.displayName() + " "));
     }
     name.hoverEvent(HoverEvent.showText(hover));
@@ -207,7 +214,7 @@ public final class TwitchComponentBuilder {
         TextComponent link = Component.text(word, NamedTextColor.AQUA, TextDecoration.UNDERLINED);
         link.clickEvent(ClickEvent.openUrl(word));
         link.hoverEvent(HoverEvent.showText(
-            Component.text(I18n.translate("twitchchat.chat.openLink"), NamedTextColor.GRAY)));
+            Component.translatable("twitchchat.chat.openLink", NamedTextColor.GRAY)));
         parent.append(link);
         continue;
       }

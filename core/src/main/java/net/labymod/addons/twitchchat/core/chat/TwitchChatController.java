@@ -37,7 +37,6 @@ import net.labymod.api.client.component.format.TextDecoration;
 import net.labymod.api.labynet.models.service.ServiceDataType;
 import net.labymod.api.labynet.models.service.ServiceStatus;
 import net.labymod.api.labynet.models.service.TwitchServiceData;
-import net.labymod.api.util.I18n;
 import net.labymod.api.util.ThreadSafe;
 import net.labymod.api.util.io.LabyExecutors;
 import net.labymod.api.util.logging.Logging;
@@ -186,7 +185,7 @@ public final class TwitchChatController implements TwitchIrcClient.Listener {
     }
 
     // No channel configured: fall back to the Twitch account linked on laby.net.
-    this.system(I18n.translate("twitchchat.messages.resolvingChannel"));
+    this.system("twitchchat.messages.resolvingChannel");
     Laby.labyAPI().labyNetController().loadServiceData(ServiceDataType.TWITCH, result -> {
       String linked = null;
       if (result.isPresent() && result.get() instanceof TwitchServiceData data
@@ -196,7 +195,7 @@ public final class TwitchChatController implements TwitchIrcClient.Listener {
       String resolved = linked;
       ThreadSafe.executeOnRenderThread(() -> {
         if (resolved == null) {
-          this.system(I18n.translate("twitchchat.messages.noChannel"));
+          this.system("twitchchat.messages.noChannel");
           return;
         }
         this.config.channel().set(resolved);
@@ -214,7 +213,7 @@ public final class TwitchChatController implements TwitchIrcClient.Listener {
     if (this.config.showInChatTab().get()) {
       this.tab.ensure();
     }
-    this.system(I18n.translate("twitchchat.messages.connecting", channel));
+    this.system("twitchchat.messages.connecting", channel);
     this.irc.connect(this.credentials(), channel);
   }
 
@@ -225,7 +224,7 @@ public final class TwitchChatController implements TwitchIrcClient.Listener {
     this.joinedChannel = null;
     this.irc.disconnect();
     if (wasConnected) {
-      this.system(I18n.translate("twitchchat.messages.disconnected"));
+      this.system("twitchchat.messages.disconnected");
     }
   }
 
@@ -250,7 +249,7 @@ public final class TwitchChatController implements TwitchIrcClient.Listener {
     synchronized (this.history) {
       this.history.clear();
     }
-    this.system(I18n.translate("twitchchat.messages.connecting", channel));
+    this.system("twitchchat.messages.connecting", channel);
     this.irc.join(channel);
   }
 
@@ -298,15 +297,15 @@ public final class TwitchChatController implements TwitchIrcClient.Listener {
       return false;
     }
     if (!this.authenticated) {
-      this.system(I18n.translate("twitchchat.messages.loginRequired"));
+      this.system("twitchchat.messages.loginRequired");
       return false;
     }
     if (this.state != State.CONNECTED) {
-      this.system(I18n.translate("twitchchat.messages.notConnected"));
+      this.system("twitchchat.messages.notConnected");
       return false;
     }
     if (!this.irc.sendMessage(text)) {
-      this.system(I18n.translate("twitchchat.messages.sendFailed"));
+      this.system("twitchchat.messages.sendFailed");
       return false;
     }
 
@@ -337,12 +336,12 @@ public final class TwitchChatController implements TwitchIrcClient.Listener {
 
   public void startLogin() {
     if (this.loginInProgress) {
-      this.system(I18n.translate("twitchchat.messages.loginPending"));
+      this.system("twitchchat.messages.loginPending");
       return;
     }
     String clientId = this.clientId();
     if (clientId.isEmpty()) {
-      this.system(I18n.translate("twitchchat.messages.noClientId"));
+      this.system("twitchchat.messages.noClientId");
       return;
     }
 
@@ -357,23 +356,25 @@ public final class TwitchChatController implements TwitchIrcClient.Listener {
         this.loginInProgress = false;
         this.logger.warn("Twitch login could not be started", e);
         ThreadSafe.executeOnRenderThread(
-            () -> this.system(I18n.translate("twitchchat.messages.loginFailed", e.getMessage())));
+            () -> this.system("twitchchat.messages.loginFailed", e.getMessage()));
       }
     });
   }
 
   private void showDeviceCode(DeviceCode code) {
     String url = code.verificationUri();
-    TextComponent message = Component.text(I18n.translate("twitchchat.messages.loginOpen") + " ",
-        NamedTextColor.GRAY);
+    TextComponent message = Component.empty();
+    message.append(Component.translatable("twitchchat.messages.loginOpen", NamedTextColor.GRAY));
+    message.append(Component.text(" "));
     message.append(Component.text(url, NamedTextColor.AQUA, TextDecoration.UNDERLINED)
         .clickEvent(ClickEvent.openUrl(url))
-        .hoverEvent(HoverEvent.showText(Component.text(I18n.translate("twitchchat.chat.openLink")))));
-    message.append(Component.text(" " + I18n.translate("twitchchat.messages.loginCode") + " ",
-        NamedTextColor.GRAY));
+        .hoverEvent(HoverEvent.showText(Component.translatable("twitchchat.chat.openLink"))));
+    message.append(Component.text(" "));
+    message.append(Component.translatable("twitchchat.messages.loginCode", NamedTextColor.GRAY));
+    message.append(Component.text(" "));
     message.append(Component.text(code.userCode(), NamedTextColor.WHITE, TextDecoration.BOLD)
         .clickEvent(ClickEvent.copyToClipboard(code.userCode()))
-        .hoverEvent(HoverEvent.showText(Component.text(I18n.translate("twitchchat.messages.loginCopy")))));
+        .hoverEvent(HoverEvent.showText(Component.translatable("twitchchat.messages.loginCopy"))));
     this.systemComponent(message);
   }
 
@@ -381,7 +382,7 @@ public final class TwitchChatController implements TwitchIrcClient.Listener {
     if (code.isExpired()) {
       this.loginInProgress = false;
       ThreadSafe.executeOnRenderThread(
-          () -> this.system(I18n.translate("twitchchat.messages.loginExpired")));
+          () -> this.system("twitchchat.messages.loginExpired"));
       return;
     }
 
@@ -398,7 +399,7 @@ public final class TwitchChatController implements TwitchIrcClient.Listener {
       } else {
         this.loginInProgress = false;
         ThreadSafe.executeOnRenderThread(
-            () -> this.system(I18n.translate("twitchchat.messages.loginFailed", e.getMessage())));
+            () -> this.system("twitchchat.messages.loginFailed", e.getMessage()));
         return;
       }
     } catch (IOException e) {
@@ -418,7 +419,7 @@ public final class TwitchChatController implements TwitchIrcClient.Listener {
       ThreadSafe.executeOnRenderThread(() -> {
         this.storeSession(tokens, validation);
         this.loginInProgress = false;
-        this.system(I18n.translate("twitchchat.messages.loginSuccess", validation.login()));
+        this.system("twitchchat.messages.loginSuccess", validation.login());
         if (this.state != State.DISCONNECTED) {
           this.connect(this.irc.channel());
         }
@@ -426,7 +427,7 @@ public final class TwitchChatController implements TwitchIrcClient.Listener {
     } catch (IOException e) {
       this.loginInProgress = false;
       ThreadSafe.executeOnRenderThread(
-          () -> this.system(I18n.translate("twitchchat.messages.loginFailed", e.getMessage())));
+          () -> this.system("twitchchat.messages.loginFailed", e.getMessage()));
     }
   }
 
@@ -453,7 +454,7 @@ public final class TwitchChatController implements TwitchIrcClient.Listener {
     this.ownBadges = Collections.emptyList();
     this.save();
     if (hadSession) {
-      this.system(I18n.translate("twitchchat.messages.loggedOut"));
+      this.system("twitchchat.messages.loggedOut");
     }
     if (this.state != State.DISCONNECTED) {
       this.connect(this.irc.channel());
@@ -495,7 +496,7 @@ public final class TwitchChatController implements TwitchIrcClient.Listener {
           this.config.clearSession();
           this.authenticated = false;
           this.save();
-          this.system(I18n.translate("twitchchat.messages.sessionExpired"));
+          this.system("twitchchat.messages.sessionExpired");
         } else {
           this.storeSession(finalTokens, finalValidation);
         }
@@ -522,7 +523,7 @@ public final class TwitchChatController implements TwitchIrcClient.Listener {
       this.state = State.CONNECTED;
       if (anonymous && !this.announcedAnonymous) {
         this.announcedAnonymous = true;
-        this.system(I18n.translate("twitchchat.messages.readOnly"));
+        this.system("twitchchat.messages.readOnly");
       }
     });
   }
@@ -536,14 +537,14 @@ public final class TwitchChatController implements TwitchIrcClient.Listener {
       this.state = State.CONNECTING;
       this.joinedChannel = null;
       String detail = reason == null ? "" : String.valueOf(reason.getMessage());
-      this.system(I18n.translate("twitchchat.messages.connectionLost", detail));
+      this.system("twitchchat.messages.connectionLost", detail);
     });
   }
 
   @Override
   public void onAuthenticationFailed() {
     ThreadSafe.executeOnRenderThread(() -> {
-      this.system(I18n.translate("twitchchat.messages.authFailed"));
+      this.system("twitchchat.messages.authFailed");
       this.config.clearSession();
       this.authenticated = false;
       this.save();
@@ -624,7 +625,7 @@ public final class TwitchChatController implements TwitchIrcClient.Listener {
         this.history.clear();
       }
       if (this.config.showEvents().get()) {
-        this.system(I18n.translate("twitchchat.messages.chatCleared"));
+        this.system("twitchchat.messages.chatCleared");
       }
       return;
     }
@@ -638,10 +639,11 @@ public final class TwitchChatController implements TwitchIrcClient.Listener {
       return;
     }
     String duration = line.tag("ban-duration");
-    String text = duration == null || duration.isEmpty()
-        ? I18n.translate("twitchchat.messages.userBanned", target)
-        : I18n.translate("twitchchat.messages.userTimedOut", target, duration);
-    this.system(text);
+    if (duration == null || duration.isEmpty()) {
+      this.system("twitchchat.messages.userBanned", target);
+    } else {
+      this.system("twitchchat.messages.userTimedOut", target, duration);
+    }
   }
 
   private void handleRoomState(IrcLine line) {
@@ -678,7 +680,7 @@ public final class TwitchChatController implements TwitchIrcClient.Listener {
     if (text == null || text.isEmpty()) {
       return;
     }
-    this.system(text);
+    this.systemText(text);
   }
 
   private void handleJoin(IrcLine line) {
@@ -693,19 +695,41 @@ public final class TwitchChatController implements TwitchIrcClient.Listener {
       return;
     }
     this.joinedChannel = channel;
-    this.system(I18n.translate("twitchchat.messages.joined", channel));
+    this.system("twitchchat.messages.joined", channel);
   }
 
   // ---------------------------------------------------------------------------------------------
   // Output
   // ---------------------------------------------------------------------------------------------
 
-  public void system(String text) {
+  /**
+   * Shows a status line. The key is resolved when the line is rendered, so messages emitted
+   * before the addon's language files are loaded still come out translated.
+   */
+  public void system(String key, Object... arguments) {
+    this.systemComponent(translatable(key, arguments));
+  }
+
+  /**
+   * Shows a status line that Twitch sent us verbatim and that must not be translated.
+   */
+  private void systemText(String text) {
     this.dispatch(TwitchChatMessage.system(text));
   }
 
   private void systemComponent(Component component) {
-    this.output(TwitchChatMessage.system(""), component, false);
+    this.dispatch(TwitchChatMessage.system(component));
+  }
+
+  private static Component translatable(String key, Object... arguments) {
+    if (arguments.length == 0) {
+      return Component.translatable(key, NamedTextColor.GRAY);
+    }
+    Component[] components = new Component[arguments.length];
+    for (int index = 0; index < arguments.length; index++) {
+      components[index] = Component.text(String.valueOf(arguments[index]));
+    }
+    return Component.translatable(key, NamedTextColor.GRAY, components);
   }
 
   private void dispatch(TwitchChatMessage message) {
@@ -762,13 +786,13 @@ public final class TwitchChatController implements TwitchIrcClient.Listener {
       case CONNECTING -> "twitchchat.messages.status.connecting";
       case DISCONNECTED -> "twitchchat.messages.status.disconnected";
     };
-    TextComponent status = Component.text(I18n.translate(stateKey, channel == null ? "-" : channel),
-        NamedTextColor.GRAY);
+    TextComponent status = Component.empty();
+    status.append(translatable(stateKey, channel == null ? "-" : channel));
     status.append(Component.newline());
     String login = this.config.twitchLogin().get();
-    status.append(Component.text(this.authenticated
-        ? I18n.translate("twitchchat.messages.status.loggedIn", login)
-        : I18n.translate("twitchchat.messages.status.anonymous"), NamedTextColor.GRAY));
+    status.append(this.authenticated
+        ? translatable("twitchchat.messages.status.loggedIn", login)
+        : translatable("twitchchat.messages.status.anonymous"));
     return status;
   }
 

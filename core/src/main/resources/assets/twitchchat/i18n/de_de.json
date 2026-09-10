@@ -11,9 +11,6 @@
         },
         "display": {
           "name": "Darstellung"
-        },
-        "advanced": {
-          "name": "Erweitert"
         }
       },
       "enabled": {
@@ -31,7 +28,7 @@
         "name": "Verbindung",
         "text": "Verbinden / Trennen"
       },
-      "login": {
+      "startLogin": {
         "name": "Mit Twitch anmelden",
         "description": "Noetig, um Nachrichten zu schreiben. Mitlesen geht ohne Konto.",
         "text": "Anmelden"
@@ -69,10 +66,6 @@
       "highlightMentions": {
         "name": "Erwaehnungen hervorheben",
         "description": "Hebt Nachrichten hervor, die deinen Twitch- oder Minecraft-Namen nennen."
-      },
-      "clientId": {
-        "name": "Twitch Client-ID",
-        "description": "Client-ID einer oeffentlichen Twitch-Anwendung. Nur fuer die Anmeldung noetig."
       }
     },
     "hudWidget": {

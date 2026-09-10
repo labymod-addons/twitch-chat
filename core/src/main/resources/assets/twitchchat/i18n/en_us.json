@@ -11,9 +11,6 @@
         },
         "display": {
           "name": "Display"
-        },
-        "advanced": {
-          "name": "Advanced"
         }
       },
       "enabled": {
@@ -31,7 +28,7 @@
         "name": "Connection",
         "text": "Connect / Disconnect"
       },
-      "login": {
+      "startLogin": {
         "name": "Log in with Twitch",
         "description": "Needed to write messages. Reading works without an account.",
         "text": "Log in"
@@ -69,10 +66,6 @@
       "highlightMentions": {
         "name": "Highlight mentions",
         "description": "Highlights messages that mention your Twitch or Minecraft name."
-      },
-      "clientId": {
-        "name": "Twitch client id",
-        "description": "Client id of a public Twitch application. Only needed for logging in."
       }
     },
     "hudWidget": {

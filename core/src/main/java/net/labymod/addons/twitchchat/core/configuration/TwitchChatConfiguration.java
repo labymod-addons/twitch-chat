@@ -42,11 +42,11 @@ public class TwitchChatConfiguration extends AddonConfig {
   @SettingSection("account")
   @SpriteSlot(y = 1)
   @ButtonSetting
-  public void login() {
+  public void startLogin() {
     TwitchChatAddon.INSTANCE.controller().startLogin();
   }
 
-  @MethodOrder(after = "login")
+  @MethodOrder(after = "startLogin")
   @SpriteSlot(x = 1, y = 1)
   @ButtonSetting
   public void logout() {
@@ -58,7 +58,7 @@ public class TwitchChatConfiguration extends AddonConfig {
   @SwitchSetting
   private final ConfigProperty<Boolean> showInChatTab = new ConfigProperty<>(true);
 
-  @SpriteSlot(y = 2)
+  @SpriteSlot(x = 3, y = 1)
   @SwitchSetting
   private final ConfigProperty<Boolean> mirrorToMainChat = new ConfigProperty<>(false);
 
@@ -86,9 +86,9 @@ public class TwitchChatConfiguration extends AddonConfig {
   @SwitchSetting
   private final ConfigProperty<Boolean> highlightMentions = new ConfigProperty<>(true);
 
-  @SettingSection("advanced")
-  @SpriteSlot(x = 2, y = 1)
-  @TextFieldSetting(maxLength = 64)
+  // Overridable in the config file, but not worth a row in the settings: the addon ships a
+  // working Twitch client id.
+  @Exclude
   private final ConfigProperty<String> clientId = new ConfigProperty<>("");
 
   // Stored, never shown: the Twitch session obtained via the device code flow.

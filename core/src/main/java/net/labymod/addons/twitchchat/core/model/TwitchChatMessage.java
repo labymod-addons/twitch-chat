@@ -3,6 +3,7 @@ package net.labymod.addons.twitchchat.core.model;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import net.labymod.api.client.component.Component;
 
 /**
  * A single line that ends up in the Twitch chat tab. Either a regular chat message, an
@@ -27,6 +28,7 @@ public final class TwitchChatMessage {
   private final List<TwitchBadge> badges;
   private final List<TwitchEmoteRange> emotes;
   private final String text;
+  private final Component component;
   private final String eventText;
   private final long timestamp;
   private final boolean self;
@@ -42,6 +44,7 @@ public final class TwitchChatMessage {
     this.badges = builder.badges == null ? Collections.emptyList() : List.copyOf(builder.badges);
     this.emotes = builder.emotes == null ? Collections.emptyList() : List.copyOf(builder.emotes);
     this.text = builder.text == null ? "" : builder.text;
+    this.component = builder.component;
     this.eventText = builder.eventText;
     this.timestamp = builder.timestamp <= 0 ? System.currentTimeMillis() : builder.timestamp;
     this.self = builder.self;
@@ -53,6 +56,14 @@ public final class TwitchChatMessage {
 
   public static TwitchChatMessage system(String text) {
     return builder(Kind.SYSTEM).text(text).build();
+  }
+
+  /**
+   * A status line whose text is already a component, so translations resolve when the line is
+   * rendered rather than when it is created.
+   */
+  public static TwitchChatMessage system(Component component) {
+    return builder(Kind.SYSTEM).component(component).build();
   }
 
   public String id() {
@@ -98,6 +109,13 @@ public final class TwitchChatMessage {
     return this.text;
   }
 
+  /**
+   * @return the prebuilt body of the line, or {@code null} when it is plain {@link #text()}
+   */
+  public Component component() {
+    return this.component;
+  }
+
   public String eventText() {
     return this.eventText;
   }
@@ -126,6 +144,7 @@ public final class TwitchChatMessage {
     private List<TwitchBadge> badges;
     private List<TwitchEmoteRange> emotes;
     private String text;
+    private Component component;
     private String eventText;
     private long timestamp;
     private boolean self;
@@ -176,6 +195,11 @@ public final class TwitchChatMessage {
 
     public Builder text(String text) {
       this.text = text;
+      return this;
+    }
+
+    public Builder component(Component component) {
+      this.component = component;
       return this;
     }
 
