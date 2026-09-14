@@ -53,8 +53,8 @@
         "name": "Twitch emotes"
       },
       "thirdPartyEmotes": {
-        "name": "BTTV and FFZ emotes",
-        "description": "Also renders BetterTTV and FrankerFaceZ emotes of the channel."
+        "name": "BTTV, FFZ and 7TV emotes",
+        "description": "Also renders BetterTTV, FrankerFaceZ and 7TV emotes of the channel. Animated emotes are shown as a still image."
       },
       "showTimestamps": {
         "name": "Timestamps"

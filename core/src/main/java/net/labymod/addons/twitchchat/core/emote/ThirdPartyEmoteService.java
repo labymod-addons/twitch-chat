@@ -3,8 +3,8 @@ package net.labymod.addons.twitchchat.core.emote;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import java.io.IOException;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -13,8 +13,9 @@ import net.labymod.addons.twitchchat.core.util.SimpleHttp.Response;
 import net.labymod.api.util.logging.Logging;
 
 /**
- * BetterTTV and FrankerFaceZ emotes (global + per channel). Both serve plain PNGs that the
- * client's texture loader understands; animated BTTV emotes are skipped on purpose.
+ * BetterTTV, FrankerFaceZ and 7TV emotes (global + per channel). Every provider is asked for a
+ * still image: the client decodes PNG and static WebP but not animated WebP, and an animated GIF
+ * would end up as its first frame anyway.
  */
 public final class ThirdPartyEmoteService {
 
@@ -23,6 +24,8 @@ public final class ThirdPartyEmoteService {
   private static final String BTTV_CDN = "https://cdn.betterttv.net/emote/%s/1x.png";
   private static final String FFZ_GLOBAL = "https://api.frankerfacez.com/v1/set/global";
   private static final String FFZ_CHANNEL = "https://api.frankerfacez.com/v1/room/id/%s";
+  private static final String SEVENTV_GLOBAL = "https://7tv.io/v3/emote-sets/global";
+  private static final String SEVENTV_CHANNEL = "https://7tv.io/v3/users/twitch/%s";
 
   private final Logging logger;
   private final ExecutorService executor;
@@ -62,18 +65,15 @@ public final class ThirdPartyEmoteService {
     this.globalLoaded = true;
     this.executor.execute(() -> {
       Map<String, String> loaded = new HashMap<>();
-      try {
-        this.readBttv(SimpleHttp.get(BTTV_GLOBAL, null).element(), loaded);
-      } catch (Exception e) {
-        this.logger.warn("Could not load global BTTV emotes: {}", e.getMessage());
-      }
-      try {
-        this.readFfz(SimpleHttp.get(FFZ_GLOBAL, null).json(), loaded, true);
-      } catch (Exception e) {
-        this.logger.warn("Could not load global FFZ emotes: {}", e.getMessage());
-      }
+      int bttv = this.load(loaded, "BTTV", "globally",
+          target -> this.readBttv(SimpleHttp.get(BTTV_GLOBAL, null).element(), target));
+      int ffz = this.load(loaded, "FFZ", "globally",
+          target -> this.readFfz(SimpleHttp.get(FFZ_GLOBAL, null).json(), target, true));
+      int sevenTv = this.load(loaded, "7TV", "globally",
+          target -> this.readSevenTv(SimpleHttp.get(SEVENTV_GLOBAL, null).json().get("emotes"), target));
       this.global.putAll(loaded);
-      this.logger.info("Loaded {} global third-party emotes", loaded.size());
+      this.logger.info("Loaded {} global third-party emotes (BTTV {}, FFZ {}, 7TV {})",
+          loaded.size(), bttv, ffz, sevenTv);
     });
   }
 
@@ -84,27 +84,44 @@ public final class ThirdPartyEmoteService {
     this.channels.put(roomId, new ConcurrentHashMap<>());
     this.executor.execute(() -> {
       Map<String, String> loaded = new HashMap<>();
-      try {
+      int bttv = this.load(loaded, "BTTV", "for room " + roomId, target -> {
         Response response = SimpleHttp.get(String.format(BTTV_CHANNEL, roomId), null);
         if (response.isOk()) {
           JsonObject json = response.json();
-          this.readBttv(json.get("channelEmotes"), loaded);
-          this.readBttv(json.get("sharedEmotes"), loaded);
+          this.readBttv(json.get("channelEmotes"), target);
+          this.readBttv(json.get("sharedEmotes"), target);
         }
-      } catch (Exception e) {
-        this.logger.warn("Could not load BTTV emotes for room {}: {}", roomId, e.getMessage());
-      }
-      try {
+      });
+      int ffz = this.load(loaded, "FFZ", "for room " + roomId, target -> {
         Response response = SimpleHttp.get(String.format(FFZ_CHANNEL, roomId), null);
         if (response.isOk()) {
-          this.readFfz(response.json(), loaded, false);
+          this.readFfz(response.json(), target, false);
         }
-      } catch (Exception e) {
-        this.logger.warn("Could not load FFZ emotes for room {}: {}", roomId, e.getMessage());
-      }
+      });
+      int sevenTv = this.load(loaded, "7TV", "for room " + roomId, target -> {
+        Response response = SimpleHttp.get(String.format(SEVENTV_CHANNEL, roomId), null);
+        if (response.isOk() && response.json().get("emote_set") instanceof JsonObject set) {
+          this.readSevenTv(set.get("emotes"), target);
+        }
+      });
       this.channels.get(roomId).putAll(loaded);
-      this.logger.info("Loaded {} third-party emotes for room {}", loaded.size(), roomId);
+      this.logger.info("Loaded {} third-party emotes for room {} (BTTV {}, FFZ {}, 7TV {})",
+          loaded.size(), roomId, bttv, ffz, sevenTv);
     });
+  }
+
+  /**
+   * Runs one provider and reports how many codes it contributed, so a channel without emotes can
+   * be told apart from a provider that failed.
+   */
+  private int load(Map<String, String> target, String provider, String context, Loader loader) {
+    int before = target.size();
+    try {
+      loader.load(target);
+    } catch (Exception e) {
+      this.logger.warn("Could not load {} emotes {}: {}", provider, context, e.getMessage());
+    }
+    return target.size() - before;
   }
 
   private void readBttv(JsonElement element, Map<String, String> target) {
@@ -113,13 +130,8 @@ public final class ThirdPartyEmoteService {
     }
     for (JsonElement entry : array) {
       JsonObject emote = entry.getAsJsonObject();
-      if (emote.has("animated") && emote.get("animated").getAsBoolean()) {
-        continue;
-      }
-      String type = emote.has("imageType") ? emote.get("imageType").getAsString() : "png";
-      if (!"png".equalsIgnoreCase(type)) {
-        continue;
-      }
+      // BTTV transcodes every emote to a static PNG under the .png extension, animated ones
+      // included, so there is nothing to filter out here.
       target.put(emote.get("code").getAsString(), String.format(BTTV_CDN, emote.get("id").getAsString()));
     }
   }
@@ -154,5 +166,75 @@ public final class ThirdPartyEmoteService {
         target.put(emote.get("name").getAsString(), url);
       }
     }
+  }
+
+  private void readSevenTv(JsonElement element, Map<String, String> target) {
+    if (!(element instanceof JsonArray array)) {
+      return;
+    }
+    for (JsonElement entry : array) {
+      JsonObject emote = entry.getAsJsonObject();
+      if (!(emote.get("data") instanceof JsonObject data)) {
+        continue;
+      }
+      String url = this.sevenTvUrl(data);
+      if (url != null) {
+        // The name on the set entry is the alias the channel uses, which is what chat sends.
+        target.put(emote.get("name").getAsString(), url);
+      }
+    }
+  }
+
+  /**
+   * Picks the 1x still image of a 7TV emote. {@code static_name} is the file itself for a static
+   * emote and the extracted first frame for an animated one; AVIF is skipped because ImageIO
+   * cannot decode it.
+   */
+  private String sevenTvUrl(JsonObject data) {
+    if (!(data.get("host") instanceof JsonObject host)
+        || !(host.get("files") instanceof JsonArray files)
+        || host.get("url") == null) {
+      return null;
+    }
+    String base = host.get("url").getAsString();
+    if (base.startsWith("//")) {
+      base = "https:" + base;
+    }
+
+    String file = null;
+    int rank = -1;
+    for (JsonElement entry : files) {
+      JsonObject candidate = entry.getAsJsonObject();
+      JsonElement name = candidate.has("static_name")
+          ? candidate.get("static_name")
+          : candidate.get("name");
+      if (name == null || !name.getAsString().startsWith("1x")) {
+        continue;
+      }
+      int candidateRank = formatRank(candidate.get("format"));
+      if (candidateRank > rank) {
+        rank = candidateRank;
+        file = name.getAsString();
+      }
+    }
+    return file == null ? null : base + "/" + file;
+  }
+
+  private static int formatRank(JsonElement format) {
+    if (format == null) {
+      return -1;
+    }
+    return switch (format.getAsString().toUpperCase(Locale.ROOT)) {
+      case "PNG" -> 2;
+      case "WEBP" -> 1;
+      case "GIF" -> 0;
+      default -> -1;
+    };
+  }
+
+  @FunctionalInterface
+  private interface Loader {
+
+    void load(Map<String, String> target) throws Exception;
   }
 }
