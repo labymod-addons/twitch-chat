@@ -156,6 +156,17 @@ public final class TwitchChatController implements TwitchIrcClient.Listener {
     return this.config;
   }
 
+  public ThirdPartyEmoteService emotes() {
+    return this.thirdParty;
+  }
+
+  /**
+   * @return the Twitch id of the joined channel, or {@code null} before the first ROOMSTATE
+   */
+  public String roomId() {
+    return this.roomId;
+  }
+
   public List<HistoryEntry> history() {
     synchronized (this.history) {
       return new ArrayList<>(this.history);

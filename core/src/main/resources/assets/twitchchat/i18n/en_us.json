@@ -66,6 +66,10 @@
       "highlightMentions": {
         "name": "Highlight mentions",
         "description": "Highlights messages that mention your Twitch or Minecraft name."
+      },
+      "emoteAutoComplete": {
+        "name": "Emote autocomplete",
+        "description": "Suggests emote codes while you type. Arrow keys pick one, Tab inserts it."
       }
     },
     "hudWidget": {

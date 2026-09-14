@@ -3,9 +3,14 @@ package net.labymod.addons.twitchchat.core.emote;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import net.labymod.addons.twitchchat.core.util.SimpleHttp;
@@ -56,6 +61,46 @@ public final class ThirdPartyEmoteService {
       }
     }
     return this.global.get(code);
+  }
+
+  /**
+   * Codes starting with the prefix, case insensitively. Channel emotes come before global ones,
+   * each block sorted by code.
+   *
+   * @param limit the maximum number of results
+   */
+  public List<Suggestion> suggest(String prefix, String roomId, int limit) {
+    if (prefix.isEmpty() || limit <= 0) {
+      return List.of();
+    }
+
+    List<Suggestion> result = new ArrayList<>();
+    Set<String> seen = new HashSet<>();
+    Map<String, String> channel = roomId == null ? null : this.channels.get(roomId);
+    if (channel != null) {
+      collect(channel, prefix, seen, result);
+    }
+    collect(this.global, prefix, seen, result);
+    return result.size() > limit ? List.copyOf(result.subList(0, limit)) : List.copyOf(result);
+  }
+
+  private static void collect(
+      Map<String, String> source,
+      String prefix,
+      Set<String> seen,
+      List<Suggestion> target
+  ) {
+    List<Suggestion> matches = new ArrayList<>();
+    for (Map.Entry<String, String> entry : source.entrySet()) {
+      String code = entry.getKey();
+      if (code.length() >= prefix.length()
+          && code.regionMatches(true, 0, prefix, 0, prefix.length())
+          && seen.add(code)) {
+        matches.add(new Suggestion(code, entry.getValue()));
+      }
+    }
+    matches.sort(Comparator.comparing(Suggestion::code, String.CASE_INSENSITIVE_ORDER));
+    target.addAll(matches);
   }
 
   public void loadGlobal() {
@@ -230,6 +275,10 @@ public final class ThirdPartyEmoteService {
       case "GIF" -> 0;
       default -> -1;
     };
+  }
+
+  public record Suggestion(String code, String url) {
+
   }
 
   @FunctionalInterface

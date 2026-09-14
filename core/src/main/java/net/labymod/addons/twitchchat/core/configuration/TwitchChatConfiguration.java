@@ -86,6 +86,10 @@ public class TwitchChatConfiguration extends AddonConfig {
   @SwitchSetting
   private final ConfigProperty<Boolean> highlightMentions = new ConfigProperty<>(true);
 
+  @SpriteSlot(x = 3, y = 3)
+  @SwitchSetting
+  private final ConfigProperty<Boolean> emoteAutoComplete = new ConfigProperty<>(true);
+
   // Overridable in the config file, but not worth a row in the settings: the addon ships a
   // working Twitch client id.
   @Exclude
@@ -147,6 +151,10 @@ public class TwitchChatConfiguration extends AddonConfig {
 
   public ConfigProperty<Boolean> highlightMentions() {
     return this.highlightMentions;
+  }
+
+  public ConfigProperty<Boolean> emoteAutoComplete() {
+    return this.emoteAutoComplete;
   }
 
   public ConfigProperty<String> clientId() {

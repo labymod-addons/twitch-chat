@@ -66,6 +66,10 @@
       "highlightMentions": {
         "name": "Erwaehnungen hervorheben",
         "description": "Hebt Nachrichten hervor, die deinen Twitch- oder Minecraft-Namen nennen."
+      },
+      "emoteAutoComplete": {
+        "name": "Emote-Autovervollstaendigung",
+        "description": "Schlaegt beim Tippen passende Emote-Codes vor. Pfeiltasten waehlen aus, Tab fuegt ein."
       }
     },
     "hudWidget": {
