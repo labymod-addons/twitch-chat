@@ -32,10 +32,16 @@ public final class TwitchChatTab {
   private static final int HIGHLIGHT_BACKGROUND = 0x669146FF;
   private static final int TRACKED_MESSAGES = 1000;
 
-  private final Map<String, ChatMessage> messagesById = new LinkedHashMap<>() {
+  private final Map<String, TrackedMessage> messagesById = new LinkedHashMap<>() {
     @Override
-    protected boolean removeEldestEntry(Map.Entry<String, ChatMessage> eldest) {
-      return this.size() > TRACKED_MESSAGES;
+    protected boolean removeEldestEntry(Map.Entry<String, TrackedMessage> eldest) {
+      if (this.size() <= TRACKED_MESSAGES) {
+        return false;
+      }
+      // Drop the id from the login index as well, otherwise it keeps every id the tab has ever
+      // seen and grows for as long as the client runs.
+      TwitchChatTab.this.forgetId(eldest.getKey(), eldest.getValue().login());
+      return true;
     }
   };
   private final Map<String, List<String>> messageIdsByLogin = new HashMap<>();
@@ -160,17 +166,31 @@ public final class TwitchChatTab {
     }
     this.tab.handleInput(advanced);
 
-    this.messagesById.put(message.id(), advanced.chatMessage());
-    if (message.hasUser()) {
-      this.messageIdsByLogin.computeIfAbsent(message.login(), key -> new ArrayList<>())
-          .add(message.id());
+    String login = message.hasUser() ? message.login() : null;
+    this.messagesById.put(message.id(), new TrackedMessage(advanced.chatMessage(), login));
+    if (login != null) {
+      this.messageIdsByLogin.computeIfAbsent(login, key -> new ArrayList<>()).add(message.id());
     }
   }
 
   public void deleteMessage(String id) {
-    ChatMessage chatMessage = this.messagesById.remove(id);
-    if (chatMessage != null && this.tab != null) {
-      this.tab.handleMessageDelete(chatMessage);
+    TrackedMessage tracked = this.messagesById.remove(id);
+    if (tracked == null) {
+      return;
+    }
+    this.forgetId(id, tracked.login());
+    if (this.tab != null) {
+      this.tab.handleMessageDelete(tracked.chatMessage());
+    }
+  }
+
+  private void forgetId(String id, String login) {
+    if (login == null) {
+      return;
+    }
+    List<String> ids = this.messageIdsByLogin.get(login);
+    if (ids != null && ids.remove(id) && ids.isEmpty()) {
+      this.messageIdsByLogin.remove(login);
     }
   }
 
@@ -180,7 +200,10 @@ public final class TwitchChatTab {
       return;
     }
     for (String id : ids) {
-      this.deleteMessage(id);
+      TrackedMessage tracked = this.messagesById.remove(id);
+      if (tracked != null && this.tab != null) {
+        this.tab.handleMessageDelete(tracked.chatMessage());
+      }
     }
   }
 
@@ -190,5 +213,9 @@ public final class TwitchChatTab {
     }
     this.messagesById.clear();
     this.messageIdsByLogin.clear();
+  }
+
+  private record TrackedMessage(ChatMessage chatMessage, String login) {
+
   }
 }

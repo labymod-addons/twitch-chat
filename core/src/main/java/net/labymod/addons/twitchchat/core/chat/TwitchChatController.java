@@ -90,6 +90,7 @@ public final class TwitchChatController implements TwitchIrcClient.Listener {
   private volatile List<TwitchBadge> ownBadges = Collections.emptyList();
   private volatile boolean loginInProgress;
   private volatile boolean announcedAnonymous;
+  private volatile List<String> mentionTargets = Collections.emptyList();
 
   public TwitchChatController(TwitchChatAddon addon) {
     this.addon = addon;
@@ -170,6 +171,23 @@ public final class TwitchChatController implements TwitchIrcClient.Listener {
   public List<HistoryEntry> history() {
     synchronized (this.history) {
       return new ArrayList<>(this.history);
+    }
+  }
+
+  public int historySize() {
+    synchronized (this.history) {
+      return this.history.size();
+    }
+  }
+
+  /**
+   * Fills a caller owned list with the current history instead of handing out a fresh copy, so
+   * the HUD widget can reuse one list across frames.
+   */
+  public void copyHistoryInto(List<HistoryEntry> target) {
+    target.clear();
+    synchronized (this.history) {
+      target.addAll(this.history);
     }
   }
 
@@ -279,8 +297,10 @@ public final class TwitchChatController implements TwitchIrcClient.Listener {
       return;
     }
 
+    this.refreshMentionTargets();
+
     if (this.config.showInChatTab().get()) {
-      if (this.state != State.DISCONNECTED || !this.history.isEmpty()) {
+      if (this.state != State.DISCONNECTED || this.historySize() > 0) {
         this.tab.ensure();
       }
     } else if (this.tab.exists()) {
@@ -563,9 +583,13 @@ public final class TwitchChatController implements TwitchIrcClient.Listener {
     });
   }
 
+  /**
+   * Runs on the IRC reader thread. Only the steps that touch LabyMod UI hop to the render
+   * thread; parsing and building the component stay off the frame.
+   */
   @Override
   public void onLine(IrcLine line) {
-    ThreadSafe.executeOnRenderThread(() -> this.handle(line));
+    this.handle(line);
   }
 
   private void handle(IrcLine line) {
@@ -573,7 +597,10 @@ public final class TwitchChatController implements TwitchIrcClient.Listener {
       case "PRIVMSG" -> this.handlePrivateMessage(line);
       case "USERNOTICE" -> this.handleUserNotice(line);
       case "CLEARCHAT" -> this.handleClearChat(line);
-      case "CLEARMSG" -> this.tab.deleteMessage(line.tag("target-msg-id", ""));
+      case "CLEARMSG" -> {
+        String id = line.tag("target-msg-id", "");
+        ThreadSafe.executeOnRenderThread(() -> this.tab.deleteMessage(id));
+      }
       case "ROOMSTATE" -> this.handleRoomState(line);
       case "USERSTATE", "GLOBALUSERSTATE" -> this.handleUserState(line);
       case "NOTICE" -> this.handleNotice(line);
@@ -631,10 +658,12 @@ public final class TwitchChatController implements TwitchIrcClient.Listener {
 
   private void handleClearChat(IrcLine line) {
     if (line.params().size() < 2) {
-      this.tab.clear();
-      synchronized (this.history) {
-        this.history.clear();
-      }
+      ThreadSafe.executeOnRenderThread(() -> {
+        this.tab.clear();
+        synchronized (this.history) {
+          this.history.clear();
+        }
+      });
       if (this.config.showEvents().get()) {
         this.system("twitchchat.messages.chatCleared");
       }
@@ -642,10 +671,12 @@ public final class TwitchChatController implements TwitchIrcClient.Listener {
     }
 
     String target = line.trailing();
-    this.tab.deleteMessagesOf(target);
-    synchronized (this.history) {
-      this.history.removeIf(entry -> target.equals(entry.message().login()));
-    }
+    ThreadSafe.executeOnRenderThread(() -> {
+      this.tab.deleteMessagesOf(target);
+      synchronized (this.history) {
+        this.history.removeIf(entry -> target.equals(entry.message().login()));
+      }
+    });
     if (!this.config.showEvents().get()) {
       return;
     }
@@ -744,11 +775,11 @@ public final class TwitchChatController implements TwitchIrcClient.Listener {
   }
 
   private void dispatch(TwitchChatMessage message) {
-    List<String> mentionTargets = this.mentionTargets();
+    List<String> mentionTargets = this.mentionTargets;
     Component component = this.components.build(message, this.roomId, mentionTargets,
         this.authenticated);
     boolean highlight = this.components.isMention(message, mentionTargets);
-    this.output(message, component, highlight);
+    ThreadSafe.executeOnRenderThread(() -> this.output(message, component, highlight));
   }
 
   private void output(TwitchChatMessage message, Component component, boolean highlight) {
@@ -777,7 +808,11 @@ public final class TwitchChatController implements TwitchIrcClient.Listener {
     }
   }
 
-  public List<String> mentionTargets() {
+  /**
+   * Recomputes the names a message may highlight for. Called from the render thread because
+   * {@link net.labymod.api.LabyAPI#getName()} is read there.
+   */
+  public void refreshMentionTargets() {
     List<String> targets = new ArrayList<>(2);
     String login = this.config.twitchLogin().get();
     if (login != null && !login.isEmpty()) {
@@ -787,7 +822,11 @@ public final class TwitchChatController implements TwitchIrcClient.Listener {
     if (name != null && !name.isEmpty()) {
       targets.add(name.toLowerCase(Locale.ROOT));
     }
-    return targets;
+    this.mentionTargets = List.copyOf(targets);
+  }
+
+  public List<String> mentionTargets() {
+    return this.mentionTargets;
   }
 
   public Component status() {

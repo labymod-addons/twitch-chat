@@ -1,6 +1,7 @@
 package net.labymod.addons.twitchchat.core.hud;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,6 +32,12 @@ public final class TwitchChatHudWidget extends BackgroundHudWidget<TwitchChatHud
 
   private final TwitchChatController controller;
   private final Map<Component, CachedLines> cache = new IdentityHashMap<>();
+  /**
+   * Reused across frames so the per frame history read does not allocate.
+   */
+  private final List<HistoryEntry> snapshot = new ArrayList<>();
+  private final List<Component> components = new ArrayList<>();
+  private final List<RenderableComponent> lines = new ArrayList<>();
   private List<Component> preview;
 
   public TwitchChatHudWidget(TwitchChatController controller) {
@@ -52,34 +59,35 @@ public final class TwitchChatHudWidget extends BackgroundHudWidget<TwitchChatHud
   @Override
   public boolean isVisibleInGame() {
     return this.controller.isEnabled()
-        && (this.controller.isConnected() || !this.controller.history().isEmpty());
+        && (this.controller.isConnected() || this.controller.historySize() > 0);
   }
 
   @Override
   public void render(RenderPhase phase, ScreenContext context, boolean isEditorContext,
       HudSize size) {
     float width = this.config.width().get();
-    List<RenderableComponent> lines = this.collectLines(isEditorContext, width);
-    float height = Math.max(LINE_HEIGHT, lines.size() * LINE_HEIGHT);
 
+    // SimpleHudWidget calls this twice per frame, UPDATE_SIZE before RENDER. Collecting only in
+    // the first pass keeps the history read and the line splitting at once per frame.
     if (!phase.canRender()) {
-      size.set(width, height);
+      this.collectLines(isEditorContext, width);
+      size.set(width, Math.max(LINE_HEIGHT, this.lines.size() * LINE_HEIGHT));
       return;
     }
 
     super.render(phase, context, isEditorContext, size);
     ScreenCanvas canvas = context.canvas();
     float y = 0;
-    for (RenderableComponent line : lines) {
+    for (RenderableComponent line : this.lines) {
       canvas.submitRenderableComponent(line, 0, y, -1, TextRenderingOptions.SHADOW);
       y += LINE_HEIGHT;
     }
   }
 
   @SuppressWarnings("deprecation")
-  private List<RenderableComponent> collectLines(boolean isEditorContext, float width) {
+  private void collectLines(boolean isEditorContext, float width) {
     List<Component> components = isEditorContext ? this.preview() : this.recent();
-    List<RenderableComponent> lines = new ArrayList<>();
+    this.lines.clear();
     for (Component component : components) {
       CachedLines cached = this.cache.get(component);
       if (cached == null || cached.width != width) {
@@ -92,30 +100,30 @@ public final class TwitchChatHudWidget extends BackgroundHudWidget<TwitchChatHud
         cached = new CachedLines(width, renderable);
         this.cache.put(component, cached);
       }
-      lines.addAll(cached.lines);
+      this.lines.addAll(cached.lines);
     }
 
     // Drop cache entries of messages that left the history.
     if (this.cache.size() > TwitchChatController.HISTORY_SIZE * 2) {
       this.cache.keySet().retainAll(components);
     }
-    return lines;
   }
 
   private List<Component> recent() {
     int max = this.config.maxMessages().get();
     long hideAfter = this.config.hideAfter().get() * 1000L;
     long now = System.currentTimeMillis();
-    List<HistoryEntry> history = this.controller.history();
-    List<Component> result = new ArrayList<>(max);
-    for (int i = history.size() - 1; i >= 0 && result.size() < max; i--) {
-      HistoryEntry entry = history.get(i);
+    this.controller.copyHistoryInto(this.snapshot);
+    this.components.clear();
+    for (int i = this.snapshot.size() - 1; i >= 0 && this.components.size() < max; i--) {
+      HistoryEntry entry = this.snapshot.get(i);
       if (hideAfter > 0 && now - entry.message().timestamp() > hideAfter) {
         break;
       }
-      result.add(0, entry.component());
+      this.components.add(entry.component());
     }
-    return result;
+    Collections.reverse(this.components);
+    return this.components;
   }
 
   private List<Component> preview() {
