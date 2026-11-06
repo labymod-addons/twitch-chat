@@ -23,7 +23,7 @@
       },
       "connection": {
         "name": "Verbindung",
-        "connected": "Verbunden mit #%s",
+        "connected": "Verbunden mit %s",
         "connecting": "Verbinde...",
         "disconnected": "Nicht verbunden",
         "connect": "Verbinden",

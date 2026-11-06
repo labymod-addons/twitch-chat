@@ -23,7 +23,7 @@
       },
       "connection": {
         "name": "Connection",
-        "connected": "Connected to #%s",
+        "connected": "Connected to %s",
         "connecting": "Connecting...",
         "disconnected": "Not connected",
         "connect": "Connect",

@@ -82,7 +82,7 @@ public class TwitchStatusWidget extends ButtonWidget {
     this.view = next;
     this.updateComponent(next.button());
     this.setEnabled(next.enabled());
-    this.label.text().setComponent(next.status());
+    this.label.setStatus(next.status());
     this.label.setHoverComponent(next.hover());
   }
 
@@ -107,7 +107,7 @@ public class TwitchStatusWidget extends ButtonWidget {
     Component disconnect = Component.translatable(PREFIX + "connection.disconnect");
     return switch (controller.state()) {
       case CONNECTED -> new View("connected:" + channel,
-          Component.text("#" + channel, NamedTextColor.GREEN),
+          Component.text(channel, NamedTextColor.GREEN),
           Component.translatable(PREFIX + "connection.connected", Component.text(channel)),
           disconnect, true, null);
       case CONNECTING -> new View("connecting",
@@ -174,8 +174,10 @@ public class TwitchStatusWidget extends ButtonWidget {
       this.addEntry(this.text).alignment().set(HorizontalAlignment.RIGHT);
     }
 
-    ComponentWidget text() {
-      return this.text;
+    void setStatus(Component status) {
+      this.text.setComponent(status);
+      // A shorter text would otherwise keep the old left edge and drift away from the button.
+      this.updateContentBounds();
     }
   }
 
