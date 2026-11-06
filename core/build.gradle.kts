@@ -4,10 +4,19 @@ dependencies {
     labyProcessor()
     api(project(":api"))
 
-    // An example of how to add an external dependency that is used by the addon.
-    // addonMavenDependency("org.jeasy:easy-random:5.0.0")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.13.4")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 labyModAnnotationProcessor {
     referenceType = ReferenceType.DEFAULT
+}
+
+tasks.test {
+    useJUnitPlatform()
+}
+
+// The Laby annotation processor only makes sense for addon sources
+tasks.compileTestJava {
+    options.compilerArgs.add("-proc:none")
 }

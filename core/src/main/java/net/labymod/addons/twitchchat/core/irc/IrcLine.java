@@ -8,9 +8,12 @@ import java.util.Map;
 
 /**
  * One parsed IRCv3 line as Twitch sends it: optional {@code @tags}, optional {@code :prefix},
- * the command and its parameters (the trailing parameter is the last entry of {@link #params()}).
+ * the command and its parameters. A {@code :trailing} parameter is the last entry of
+ * {@link #params()}; {@code hasTrailing} tells it apart from a plain last parameter such as the
+ * channel of a USERNOTICE that carries no message.
  */
-public record IrcLine(Map<String, String> tags, String prefix, String command, List<String> params) {
+public record IrcLine(Map<String, String> tags, String prefix, String command, List<String> params,
+                      boolean hasTrailing) {
 
   public static IrcLine parse(String raw) {
     Map<String, String> tags = Collections.emptyMap();
@@ -20,7 +23,7 @@ public record IrcLine(Map<String, String> tags, String prefix, String command, L
     if (rest.startsWith("@")) {
       int space = rest.indexOf(' ');
       if (space < 0) {
-        return new IrcLine(parseTags(rest.substring(1)), null, "", List.of());
+        return new IrcLine(parseTags(rest.substring(1)), null, "", List.of(), false);
       }
       tags = parseTags(rest.substring(1, space));
       rest = rest.substring(space + 1);
@@ -29,7 +32,7 @@ public record IrcLine(Map<String, String> tags, String prefix, String command, L
     if (rest.startsWith(":")) {
       int space = rest.indexOf(' ');
       if (space < 0) {
-        return new IrcLine(tags, rest.substring(1), "", List.of());
+        return new IrcLine(tags, rest.substring(1), "", List.of(), false);
       }
       prefix = rest.substring(1, space);
       rest = rest.substring(space + 1);
@@ -37,6 +40,7 @@ public record IrcLine(Map<String, String> tags, String prefix, String command, L
 
     String command;
     List<String> params = new ArrayList<>();
+    boolean hasTrailing = false;
     int space = rest.indexOf(' ');
     if (space < 0) {
       command = rest;
@@ -46,6 +50,7 @@ public record IrcLine(Map<String, String> tags, String prefix, String command, L
       while (!rest.isEmpty()) {
         if (rest.startsWith(":")) {
           params.add(rest.substring(1));
+          hasTrailing = true;
           break;
         }
         int next = rest.indexOf(' ');
@@ -58,7 +63,7 @@ public record IrcLine(Map<String, String> tags, String prefix, String command, L
       }
     }
 
-    return new IrcLine(tags, prefix, command, Collections.unmodifiableList(params));
+    return new IrcLine(tags, prefix, command, Collections.unmodifiableList(params), hasTrailing);
   }
 
   private static Map<String, String> parseTags(String raw) {
@@ -118,8 +123,11 @@ public record IrcLine(Map<String, String> tags, String prefix, String command, L
     return index < this.params.size() ? this.params.get(index) : null;
   }
 
+  /**
+   * @return the {@code :trailing} parameter, or {@code null} if the line has none
+   */
   public String trailing() {
-    return this.params.isEmpty() ? null : this.params.get(this.params.size() - 1);
+    return this.hasTrailing ? this.params.get(this.params.size() - 1) : null;
   }
 
   /**
