@@ -1,4 +1,5 @@
 import net.labymod.labygradle.common.extension.model.labymod.ReleaseChannels
+import net.labymod.labygradle.common.internal.labymod.addon.model.AddonPermission
 
 plugins {
     id("java-library")
@@ -33,6 +34,8 @@ labyMod {
         minecraftVersion = "*"
         version = rootProject.version.toString()
         releaseChannel = ReleaseChannels.PRODUCTION
+        // Twitch chat over IRC, the Twitch login and the emote and badge lookups.
+        permission(AddonPermission.EXTERNAL_SERVERS_ACCESS, AddonPermission.EXTERNAL_SERVERS_GET)
     }
 }
 
