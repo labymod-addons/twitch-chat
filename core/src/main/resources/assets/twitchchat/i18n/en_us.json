@@ -6,9 +6,6 @@
         "connection": {
           "name": "Connection"
         },
-        "account": {
-          "name": "Twitch account"
-        },
         "display": {
           "name": "Display"
         }
@@ -24,18 +21,24 @@
         "name": "Connect automatically",
         "description": "Join the channel as soon as the game starts."
       },
-      "toggleConnection": {
+      "connection": {
         "name": "Connection",
-        "text": "Connect / Disconnect"
+        "connected": "Connected to #%s",
+        "connecting": "Connecting...",
+        "disconnected": "Not connected",
+        "connect": "Connect",
+        "disconnect": "Disconnect"
       },
-      "startLogin": {
-        "name": "Log in with Twitch",
+      "account": {
+        "name": "Twitch account",
         "description": "Needed to write messages. Reading works without an account.",
-        "text": "Log in"
-      },
-      "logout": {
-        "name": "Log out",
-        "text": "Log out"
+        "loggedOut": "Not logged in",
+        "loggedIn": "Logged in as %s",
+        "starting": "Starting...",
+        "login": "Log in",
+        "logout": "Log out",
+        "cancel": "Cancel",
+        "codeHint": "Confirm this code on twitch.tv/activate. The page opened in your browser. Click to copy the code."
       },
       "showInChatTab": {
         "name": "Own chat tab",

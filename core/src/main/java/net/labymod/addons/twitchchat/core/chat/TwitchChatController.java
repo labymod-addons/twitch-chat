@@ -89,6 +89,7 @@ public final class TwitchChatController implements TwitchIrcClient.Listener {
   private volatile int ownColor = -1;
   private volatile List<TwitchBadge> ownBadges = Collections.emptyList();
   private volatile boolean loginInProgress;
+  private volatile DeviceCode pendingCode;
   private volatile boolean announcedAnonymous;
   private volatile List<String> mentionTargets = Collections.emptyList();
 
@@ -365,7 +366,44 @@ public final class TwitchChatController implements TwitchIrcClient.Listener {
     return configured != null && !configured.isBlank() ? configured.trim() : DEFAULT_CLIENT_ID;
   }
 
+  /**
+   * @return the device code the player still has to confirm on Twitch, or {@code null}
+   */
+  public DeviceCode pendingLogin() {
+    return this.pendingCode;
+  }
+
+  /**
+   * @return whether a login was started but Twitch has not handed out a code yet
+   */
+  public boolean isLoginStarting() {
+    return this.loginInProgress && this.pendingCode == null;
+  }
+
+  /**
+   * @return the Twitch name of the stored session, or {@code null} without one
+   */
+  public String accountName() {
+    if (!this.config.hasSession()) {
+      return null;
+    }
+    String displayName = this.ownDisplayName;
+    if (displayName != null && !displayName.isBlank()) {
+      return displayName;
+    }
+    String login = this.config.twitchLogin().get();
+    return login == null || login.isBlank() ? null : login;
+  }
+
   public void startLogin() {
+    this.startLogin(false);
+  }
+
+  /**
+   * @param openBrowser opens the Twitch activation page right away instead of only posting the
+   *                    link into the chat
+   */
+  public void startLogin(boolean openBrowser) {
     if (this.loginInProgress) {
       this.system("twitchchat.messages.loginPending");
       return;
@@ -380,11 +418,20 @@ public final class TwitchChatController implements TwitchIrcClient.Listener {
     this.executor.execute(() -> {
       try {
         DeviceCode code = TwitchAuth.requestDeviceCode(clientId);
-        ThreadSafe.executeOnRenderThread(() -> this.showDeviceCode(code));
+        if (!this.loginInProgress) {
+          return;
+        }
+        this.pendingCode = code;
+        ThreadSafe.executeOnRenderThread(() -> {
+          this.showDeviceCode(code);
+          if (openBrowser) {
+            Laby.labyAPI().minecraft().chatExecutor().openUrl(code.verificationUri(), false);
+          }
+        });
         this.scheduler.schedule(() -> this.pollLogin(clientId, code, code.intervalSeconds()),
             code.intervalSeconds(), TimeUnit.SECONDS);
       } catch (IOException e) {
-        this.loginInProgress = false;
+        this.finishLogin();
         this.logger.warn("Twitch login could not be started", e);
         ThreadSafe.executeOnRenderThread(
             () -> this.system("twitchchat.messages.loginFailed", e.getMessage()));
@@ -409,9 +456,21 @@ public final class TwitchChatController implements TwitchIrcClient.Listener {
     this.systemComponent(message);
   }
 
+  public void cancelLogin() {
+    this.finishLogin();
+  }
+
+  private void finishLogin() {
+    this.loginInProgress = false;
+    this.pendingCode = null;
+  }
+
   private void pollLogin(String clientId, DeviceCode code, int interval) {
+    if (this.pendingCode != code) {
+      return;
+    }
     if (code.isExpired()) {
-      this.loginInProgress = false;
+      this.finishLogin();
       ThreadSafe.executeOnRenderThread(
           () -> this.system("twitchchat.messages.loginExpired"));
       return;
@@ -420,7 +479,7 @@ public final class TwitchChatController implements TwitchIrcClient.Listener {
     int nextInterval = interval;
     try {
       TokenSet tokens = TwitchAuth.pollDeviceToken(clientId, code);
-      if (tokens != null) {
+      if (tokens != null && this.pendingCode == code) {
         this.completeLogin(tokens);
         return;
       }
@@ -428,7 +487,7 @@ public final class TwitchChatController implements TwitchIrcClient.Listener {
       if ("slow_down".equals(e.code())) {
         nextInterval = interval + 5;
       } else {
-        this.loginInProgress = false;
+        this.finishLogin();
         ThreadSafe.executeOnRenderThread(
             () -> this.system("twitchchat.messages.loginFailed", e.getMessage()));
         return;
@@ -449,14 +508,14 @@ public final class TwitchChatController implements TwitchIrcClient.Listener {
       }
       ThreadSafe.executeOnRenderThread(() -> {
         this.storeSession(tokens, validation);
-        this.loginInProgress = false;
+        this.finishLogin();
         this.system("twitchchat.messages.loginSuccess", validation.login());
         if (this.state != State.DISCONNECTED) {
           this.connect(this.irc.channel());
         }
       });
     } catch (IOException e) {
-      this.loginInProgress = false;
+      this.finishLogin();
       ThreadSafe.executeOnRenderThread(
           () -> this.system("twitchchat.messages.loginFailed", e.getMessage()));
     }

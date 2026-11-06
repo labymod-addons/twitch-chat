@@ -6,9 +6,6 @@
         "connection": {
           "name": "Verbindung"
         },
-        "account": {
-          "name": "Twitch-Konto"
-        },
         "display": {
           "name": "Darstellung"
         }
@@ -24,18 +21,24 @@
         "name": "Automatisch verbinden",
         "description": "Betritt den Kanal direkt beim Start des Spiels."
       },
-      "toggleConnection": {
+      "connection": {
         "name": "Verbindung",
-        "text": "Verbinden / Trennen"
+        "connected": "Verbunden mit #%s",
+        "connecting": "Verbinde...",
+        "disconnected": "Nicht verbunden",
+        "connect": "Verbinden",
+        "disconnect": "Trennen"
       },
-      "startLogin": {
-        "name": "Mit Twitch anmelden",
-        "description": "Noetig, um Nachrichten zu schreiben. Mitlesen geht ohne Konto.",
-        "text": "Anmelden"
-      },
-      "logout": {
-        "name": "Abmelden",
-        "text": "Abmelden"
+      "account": {
+        "name": "Twitch-Konto",
+        "description": "Nötig, um Nachrichten zu schreiben. Mitlesen geht ohne Konto.",
+        "loggedOut": "Nicht angemeldet",
+        "loggedIn": "Angemeldet als %s",
+        "starting": "Wird gestartet...",
+        "login": "Anmelden",
+        "logout": "Abmelden",
+        "cancel": "Abbrechen",
+        "codeHint": "Bestätige diesen Code auf twitch.tv/activate. Die Seite ist in deinem Browser offen. Klicken kopiert den Code."
       },
       "showInChatTab": {
         "name": "Eigener Chat-Tab",

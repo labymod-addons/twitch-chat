@@ -1,8 +1,8 @@
 package net.labymod.addons.twitchchat.core.configuration;
 
-import net.labymod.addons.twitchchat.core.TwitchChatAddon;
+import net.labymod.addons.twitchchat.core.configuration.widget.TwitchStatusWidget.Kind;
+import net.labymod.addons.twitchchat.core.configuration.widget.TwitchStatusWidget.TwitchStatusSetting;
 import net.labymod.api.addon.AddonConfig;
-import net.labymod.api.client.gui.screen.widget.widgets.input.ButtonWidget.ButtonSetting;
 import net.labymod.api.client.gui.screen.widget.widgets.input.SwitchWidget.SwitchSetting;
 import net.labymod.api.client.gui.screen.widget.widgets.input.TextFieldWidget.TextFieldSetting;
 import net.labymod.api.configuration.loader.annotation.ConfigName;
@@ -31,26 +31,17 @@ public class TwitchChatConfiguration extends AddonConfig {
   @SwitchSetting
   private final ConfigProperty<Boolean> autoConnect = new ConfigProperty<>(true);
 
+  // Both rows show their live state next to a single button; the widget handles the press.
   @MethodOrder(after = "autoConnect")
   @SpriteSlot(x = 3)
-  @ButtonSetting
-  public void toggleConnection() {
-    TwitchChatAddon.INSTANCE.controller().toggleConnection();
+  @TwitchStatusSetting(Kind.CONNECTION)
+  public void connection() {
   }
 
-  @MethodOrder(after = "toggleConnection")
-  @SettingSection("account")
+  @MethodOrder(after = "connection")
   @SpriteSlot(y = 1)
-  @ButtonSetting
-  public void startLogin() {
-    TwitchChatAddon.INSTANCE.controller().startLogin();
-  }
-
-  @MethodOrder(after = "startLogin")
-  @SpriteSlot(x = 1, y = 1)
-  @ButtonSetting
-  public void logout() {
-    TwitchChatAddon.INSTANCE.controller().logout();
+  @TwitchStatusSetting(Kind.ACCOUNT)
+  public void account() {
   }
 
   @SettingSection("display")
