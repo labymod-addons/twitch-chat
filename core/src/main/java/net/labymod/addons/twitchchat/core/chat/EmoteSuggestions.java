@@ -167,7 +167,7 @@ public final class EmoteSuggestions {
           suggestion.code(),
           Icon.url(suggestion.url()),
           RenderableComponent.of(label),
-          Laby.labyAPI().renderPipeline().componentRenderer().width(label)
+          Laby.references().componentRenderer().width(label)
       ));
     }
 

@@ -38,7 +38,7 @@
         "login": "Log in",
         "logout": "Log out",
         "cancel": "Cancel",
-        "codeHint": "Confirm this code on twitch.tv/activate. The page opened in your browser. Click to copy the code."
+        "codeHint": "Confirm this code on twitch.tv/activate. The page opened in your browser."
       },
       "showInChatTab": {
         "name": "Own chat tab",
@@ -118,7 +118,11 @@
       "no_video": "Listening only"
     },
     "commands": {
-      "help": "/twitch join <channel> | leave | connect | login | logout | status | say <message>  -  /tw <message> writes into the channel"
+      "help": "/twitch join <channel> | leave | connect | login | logout | status | say <message>  -  /tw <message> writes into the channel",
+      "usage": {
+        "join": "/twitch join <channel>",
+        "say": "/twitch say <message>"
+      }
     },
     "messages": {
       "resolvingChannel": "No channel set, looking up your linked Twitch account...",

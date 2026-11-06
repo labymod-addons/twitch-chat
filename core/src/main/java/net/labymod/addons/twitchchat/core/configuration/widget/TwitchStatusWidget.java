@@ -7,7 +7,6 @@ import java.lang.annotation.Target;
 import net.labymod.addons.twitchchat.core.TwitchChatAddon;
 import net.labymod.addons.twitchchat.core.auth.TwitchAuth.DeviceCode;
 import net.labymod.addons.twitchchat.core.chat.TwitchChatController;
-import net.labymod.api.Laby;
 import net.labymod.api.client.component.Component;
 import net.labymod.api.client.component.format.NamedTextColor;
 import net.labymod.api.client.component.format.TextColor;
@@ -48,11 +47,6 @@ public class TwitchStatusWidget extends ButtonWidget {
     this.setPressable(() -> {
       this.press();
       this.refresh();
-    });
-    label.setPressable(() -> {
-      if (this.view != null && this.view.copyText() != null) {
-        Laby.labyAPI().minecraft().setClipboard(this.view.copyText());
-      }
     });
   }
 
@@ -109,13 +103,13 @@ public class TwitchStatusWidget extends ButtonWidget {
       case CONNECTED -> new View("connected:" + channel,
           Component.text(channel, NamedTextColor.GREEN),
           Component.translatable(PREFIX + "connection.connected", Component.text(channel)),
-          disconnect, true, null);
+          disconnect, true);
       case CONNECTING -> new View("connecting",
           Component.translatable(PREFIX + "connection.connecting", NamedTextColor.YELLOW),
-          null, disconnect, true, null);
+          null, disconnect, true);
       case DISCONNECTED -> new View("disconnected",
           Component.translatable(PREFIX + "connection.disconnected", NamedTextColor.GRAY),
-          null, Component.translatable(PREFIX + "connection.connect"), true, null);
+          null, Component.translatable(PREFIX + "connection.connect"), true);
     };
   }
 
@@ -126,23 +120,23 @@ public class TwitchStatusWidget extends ButtonWidget {
       return new View("pending:" + code.userCode(),
           Component.text(code.userCode(), NamedTextColor.WHITE, TextDecoration.BOLD),
           Component.translatable(PREFIX + "account.codeHint"),
-          Component.translatable(PREFIX + "account.cancel"), true, code.userCode());
+          Component.translatable(PREFIX + "account.cancel"), true);
     }
     if (controller.isLoginStarting()) {
       return new View("starting",
           Component.translatable(PREFIX + "account.starting", NamedTextColor.GRAY),
-          null, login, false, null);
+          null, login, false);
     }
     String name = controller.accountName();
     if (name != null) {
       return new View("account:" + name,
           Component.text(name, TWITCH_PURPLE),
           Component.translatable(PREFIX + "account.loggedIn", Component.text(name)),
-          Component.translatable(PREFIX + "account.logout"), true, null);
+          Component.translatable(PREFIX + "account.logout"), true);
     }
     return new View("anonymous",
         Component.translatable(PREFIX + "account.loggedOut", NamedTextColor.GRAY),
-        null, login, true, null);
+        null, login, true);
   }
 
   public enum Kind {
@@ -155,7 +149,7 @@ public class TwitchStatusWidget extends ButtonWidget {
    * changes.
    */
   private record View(String key, Component status, Component hover, Component button,
-                      boolean enabled, String copyText) {
+                      boolean enabled) {
 
   }
 

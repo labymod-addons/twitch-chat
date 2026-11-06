@@ -48,7 +48,7 @@ public final class TwitchCommand extends Command {
     switch (arguments[0].toLowerCase(Locale.ROOT)) {
       case "join" -> {
         if (arguments.length < 2) {
-          this.displayMessage(Component.text("/twitch join <channel>", NamedTextColor.GRAY));
+          this.displayMessage(Component.translatable("twitchchat.commands.usage.join", NamedTextColor.GRAY));
           return true;
         }
         this.controller.join(arguments[1]);
@@ -60,7 +60,7 @@ public final class TwitchCommand extends Command {
       case "status" -> this.displayMessage(this.controller.status());
       case "say" -> {
         if (arguments.length < 2) {
-          this.displayMessage(Component.text("/twitch say <message>", NamedTextColor.GRAY));
+          this.displayMessage(Component.translatable("twitchchat.commands.usage.say", NamedTextColor.GRAY));
           return true;
         }
         this.controller.send(String.join(" ", Arrays.copyOfRange(arguments, 1, arguments.length)));

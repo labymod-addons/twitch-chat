@@ -42,7 +42,7 @@ public final class TwitchComponentBuilder {
   public static final int ICON_SIZE = 8;
   public static final TextColor PURPLE = TextColor.color(TwitchColors.TWITCH_PURPLE);
   public static final Component PREFIX = Component.text("[", NamedTextColor.DARK_GRAY)
-      .append(Component.text("Twitch", PURPLE))
+      .append(Component.translatable("twitchchat.chat.tab", PURPLE))
       .append(Component.text("]", NamedTextColor.DARK_GRAY));
 
   private static final Pattern URL = Pattern.compile("^https?://[^\\s]+$", Pattern.CASE_INSENSITIVE);

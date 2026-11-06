@@ -91,8 +91,7 @@ public final class TwitchChatHudWidget extends BackgroundHudWidget<TwitchChatHud
     for (Component component : components) {
       CachedLines cached = this.cache.get(component);
       if (cached == null || cached.width != width) {
-        List<Component> split = Laby.labyAPI().renderPipeline().componentRenderer()
-            .split(component, width);
+        List<Component> split = Laby.references().componentRenderer().split(component, width);
         List<RenderableComponent> renderable = new ArrayList<>(split.size());
         for (Component line : split) {
           renderable.add(RenderableComponent.of(line));
