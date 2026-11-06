@@ -15,6 +15,7 @@ import net.labymod.addons.twitchchat.core.model.TwitchBadge;
 import net.labymod.addons.twitchchat.core.model.TwitchChatMessage;
 import net.labymod.addons.twitchchat.core.model.TwitchChatMessage.Kind;
 import net.labymod.addons.twitchchat.core.model.TwitchEmoteRange;
+import net.labymod.addons.twitchchat.core.util.CodePoints;
 import net.labymod.addons.twitchchat.core.util.TwitchColors;
 import net.labymod.api.client.component.Component;
 import net.labymod.api.client.component.TextComponent;
@@ -157,7 +158,9 @@ public final class TwitchComponentBuilder {
       List<String> mentionTargets) {
     TextComponent body = Component.empty();
     String text = message.text();
-    int[] codePoints = text.codePoints().toArray();
+    // Twitch counts emote ranges in code points, not chars.
+    int[] offsets = CodePoints.offsets(text);
+    int length = offsets.length - 1;
 
     List<TwitchEmoteRange> emotes = new ArrayList<>();
     if (this.config.showEmotes().get()) {
@@ -167,18 +170,19 @@ public final class TwitchComponentBuilder {
 
     int cursor = 0;
     for (TwitchEmoteRange range : emotes) {
-      if (range.start() < cursor || range.end() >= codePoints.length || range.end() < range.start()) {
+      if (range.start() < cursor || range.end() >= length || range.end() < range.start()) {
         continue;
       }
       if (range.start() > cursor) {
-        this.appendText(body, new String(codePoints, cursor, range.start() - cursor), roomId, color, italic);
+        this.appendText(body, text.substring(offsets[cursor], offsets[range.start()]), roomId,
+            color, italic);
       }
-      String code = new String(codePoints, range.start(), range.end() - range.start() + 1);
+      String code = text.substring(offsets[range.start()], offsets[range.end() + 1]);
       body.append(this.emote(range.url(), code));
       cursor = range.end() + 1;
     }
-    if (cursor < codePoints.length) {
-      this.appendText(body, new String(codePoints, cursor, codePoints.length - cursor), roomId, color, italic);
+    if (cursor < length) {
+      this.appendText(body, text.substring(offsets[cursor]), roomId, color, italic);
     }
     return body;
   }
